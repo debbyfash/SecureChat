@@ -1,0 +1,83 @@
+﻿@page "/"
+<PageTitle>Home</PageTitle>
+
+<style>
+    /* A flex container to hold the side videos and the center content */
+    .page-container {
+        display: flex;
+        width: 100%;
+        height: 100vh; /* Full viewport height */
+        overflow: hidden;
+    }
+    /* Style for the side video sections */
+    .side-video {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .side-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    /* Central content container styling */
+    .content {
+        flex: 0 0 800px; /* Fixed width for the content */
+        /* background: rgba(0, 0, 0, 0.6); /* Semi-transparent background for readability */ 
+        background: #280acaa3;
+        color: #fff;
+        padding: 2rem;
+        box-sizing: border-box;
+        text-align: left;
+        overflow-y: auto;
+    }
+</style>
+
+<div class="page-container">
+    <!-- Left side video -->
+    <div class="side-video">
+        <video autoplay muted loop>
+            <source src="videos/cryptographyvideo.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <!-- Center content -->
+    <div class="content">
+        <h1 class="display-4">Welcome to SecureChat!</h1>
+        <p class="lead">Exploring Cryptography and Its Techniques</p>
+
+        <h3>What is Cryptography?</h3>
+        <p>
+            Cryptography is the science of protecting information by transforming it into an unreadable format.
+            It is essential in keeping digital communication secure and private.
+        </p>
+
+        <h4>Cryptographic Techniques</h4>
+        <ol>
+            <li><strong>Caesar Cipher:</strong> A substitution cipher that shifts letters by a fixed number.</li>
+            <li><strong>Monoalphabetic Cipher:</strong> Replaces each letter with a fixed substitution throughout the message.</li>
+            <li><strong>Polyalphabetic Cipher:</strong> Uses multiple substitution alphabets to encrypt the text (e.g., Vigenère cipher).</li>
+            <li><strong>Hill Cipher:</strong> Uses linear algebra and matrix multiplication for encryption.</li>
+            <li><strong>Playfair Cipher:</strong> Encrypts digraphs (pairs of letters) using a 5x5 key square.</li>
+            <li><strong>One-Time Pad (OTP):</strong> A theoretically unbreakable cipher using a random key that’s as long as the message.</li>
+            <li><strong>Rail Fence Cipher:</strong> A transposition cipher that writes text in a zigzag pattern on rails.</li>
+            <li><strong>Columnar Transposition:</strong> Rearranges the characters of plaintext into columns using a keyword.</li>
+            <li><strong>DES (Data Encryption Standard):</strong> A symmetric-key algorithm for the encryption of digital data.</li>
+            <li><strong>AES (Advanced Encryption Standard):</strong> A widely used secure symmetric block cipher.</li>
+            <li><strong>RC4:</strong> A stream cipher using variable-length keys and fast encryption/decryption.</li>
+            <li><strong>RSA:</strong> A public-key encryption technique based on the difficulty of factoring large integers.</li>
+            <li><strong>ECC (Elliptic Curve Cryptography):</strong> Uses elliptic curves for secure public-key cryptography.</li>
+            <li><strong>Diffie-Hellman (DH) Key Exchange:</strong> A method of securely exchanging cryptographic keys over a public channel.</li>
+        </ol>
+    </div>
+
+    <!-- Right side video -->
+    <div class="side-video">
+        <video autoplay muted loop>
+            <source src="videos/cryptographyvideo.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+</div>

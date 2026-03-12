@@ -1,0 +1,495 @@
+﻿@page "/secure-chat"
+@using System.Text
+@using System.IO
+@using SecureChat.Model
+@using static SecureChat.EncryptionTechniques
+@using System.Numerics;
+
+
+
+<div class="container-fluid">
+    <h1 class="text-center mb-4">Secure Chat Application</h1>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100 border-primary position-relative" style="background-image: url('/images/sender-background.jpg'); background-size: cover; background-position: center;">
+                <div class="card-header text-center bg-primary text-white"><h1>Sender</h1></div>
+                <div class="card-body" style="background-color: rgba(255,255,255,0.8);">
+                    <EditForm Model="Sender" OnValidSubmit="HandleEncrypt">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <!-- Plaintext Input -->
+                        <div class="row mb-3 align-items-center">
+                            <label for="senderPlaintextFile" class="col-3 form-label">Plaintext:</label>
+                            <div class="col-9">
+                                <InputTextArea @bind-Value="Sender.Plaintext" rows="3" class="form-control" placeholder="Type your message here..." />
+                                <InputFile id="senderPlaintextFile" OnChange="HandleSenderFileUpload" class="form-control mt-2" />
+                            </div>
+                        </div>
+
+                        <!-- Key Input -->
+                        <div class="row mb-3 align-items-center">
+                            <label for="senderKey" class="col-3 form-label">Key:</label>
+                            <div class="col-9">
+                                <InputText @bind-Value="Sender.Key" class="form-control" />
+                            </div>
+                        </div>
+
+                        <!-- Technique Selection -->
+                        <div class="row mb-3 align-items-center">
+                            <label for="senderTechnique" class="col-3 form-label">Technique:</label>
+                            <div class="col-9">
+                                <InputSelect @bind-Value="Sender.Technique" class="form-select">
+                                    @foreach (var technique in AvailableTechniques)
+                                    {
+                                        <option value="@technique">@technique</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+
+
+                        <!-- Encrypt Buttons (Generate Keys and Encrypt) on the same line -->
+                        <div class="row mt-3 mb-3 align-items-center">
+                            <label class="col-3 form-label"></label>
+                            <div class="col-9 d-flex">
+                                <button type="button" class="btn btn-primary me-2" style="width: 50%;" @onclick="GenerateSenderKeys">Generate Keys</button>
+                                <button type="submit" class="btn btn-primary" style="width: 50%;">Encrypt</button>
+                            </div>
+                        </div>
+
+
+                        <div class="row mb-3 align-items-center">
+                            <label for="senderCiphertext" class="col-3 form-label">Ciphertext:</label>
+                            <div class="col-9">
+                                <InputTextArea @bind-Value="Sender.Ciphertext" rows="3" class="form-control" readonly />
+                            </div>
+                        </div>
+
+                        <!-- Ciphertext Output -->
+                        <div class="row mt-3 mb-3 align-items-center">
+                            <label class="col-3 form-label"></label>
+                            <div class="col-9">
+                                <button type="button" class="btn btn-success w-50" @onclick="HandleSend">Send</button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100 border-primary position-relative" style="background-image: url('/images/receiver-background.jpg'); background-size: cover; background-position: center;">
+                <div class="card-header text-center bg-primary text-white"><h1>Receiver</h1></div>
+                <div class="card-body" style="background-color: rgba(255,255,255,0.8);">
+                    <EditForm Model="Receiver" OnValidSubmit="HandleDecrypt">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <!-- Ciphertext Input -->
+                        <div class="row mb-3 align-items-center">
+                            <label for="receiverCiphertextFile" class="col-3 form-label">Ciphertext:</label>
+                            <div class="col-9">
+                                <InputTextArea @bind-Value="Receiver.Ciphertext" rows="3" class="form-control" placeholder="Paste ciphertext here..." />
+                                <InputFile id="receiverCiphertextFile" OnChange="HandleReceiverFileUpload" class="form-control mt-2" />
+                            </div>
+                        </div>
+
+                        <!-- Key Input -->
+                        <div class="row mb-3 align-items-center">
+                            <label for="receiverKey" class="col-3 form-label">Key:</label>
+                            <div class="col-9">
+                                <InputText @bind-Value="Receiver.Key" class="form-control" />
+                            </div>
+                        </div>
+
+                        <!-- Technique Selection -->
+                        <div class="row mb-3 align-items-center">
+                            <label for="receiverTechnique" class="col-3 form-label">Technique:</label>
+                            <div class="col-9">
+                                <InputSelect @bind-Value="Receiver.Technique" class="form-select">
+                                    @foreach (var technique in AvailableTechniques)
+                                    {
+                                        <option value="@technique">@technique</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <!-- Decrypt Buttons (Generate Keys and Encrypt) on the same line -->
+                        <div class="row mt-3 mb-3 align-items-center">
+                            <label class="col-3 form-label"></label>
+                            <div class="col-9 d-flex">
+                                <button type="button" class="btn btn-primary me-2" style="width: 50%;" @onclick="GenerateSenderKeys">Generate Keys</button>
+                                <button type="submit" class="btn btn-primary" style="width: 50%;">Decrypt</button>
+                            </div>
+                        </div>
+
+                        <!-- Plaintext Output -->
+                        <div class="row mb-3 align-items-center">
+                            <label for="receiverPlaintext" class="col-3 form-label">Plaintext:</label>
+                            <div class="col-9">
+                                <InputTextArea @bind-Value="Receiver.Plaintext" rows="3" class="form-control" readonly />
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    // Models
+    private SenderModel Sender { get; set; } = new();
+    private ReceiverModel Receiver { get; set; } = new();
+
+    private static readonly string[] AvailableTechniques = new[]
+    {
+        "Caesar", "Monoalphabetic", "Polyalphabetic", "Hill", "Playfair",
+        "OTP", "RailFence", "Columnar", "DES", "AES", "RC4",
+        "RSA", "ECC", "DH", "SHA", "DSA"
+    };
+
+    private async Task HandleSenderFileUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            Sender.Plaintext = await ReadFileAsync(e.File);
+        }
+        catch (Exception ex)
+        {
+            Sender.Plaintext = $"File upload error: {ex.Message}";
+        }
+    }
+
+    private async Task HandleReceiverFileUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            Receiver.Ciphertext = await ReadFileAsync(e.File);
+        }
+        catch (Exception ex)
+        {
+            Receiver.Ciphertext = $"File upload error: {ex.Message}";
+        }
+    }
+
+    private async Task<string> ReadFileAsync(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
+        using var reader = new StreamReader(stream);
+        return await reader.ReadToEndAsync();
+    }
+
+    private void HandleEncrypt()
+    {
+        // Check if plaintext is provided
+        if (string.IsNullOrWhiteSpace(Sender.Plaintext))
+        {
+            Sender.Ciphertext = "Encryption error: Plaintext is empty.";
+            return;
+        }
+
+        // For OTP, automatically generate and populate the key field.
+        if (Sender.Technique == "OTP")
+        {
+            Sender.Key = EncryptionTechniques.GenerateRandomKey(Sender.Plaintext.Length);
+        }
+        else if (string.IsNullOrWhiteSpace(Sender.Key))
+        {
+            Sender.Ciphertext = "Encryption error: Key is empty.";
+            return;
+        }
+
+        try
+        {
+            Sender.Ciphertext = Encrypt(Sender.Plaintext, Sender.Key, Sender.Technique);
+        }
+        catch (Exception ex)
+        {
+            Sender.Ciphertext = $"Encryption error: {ex.Message}";
+        }
+    }
+
+
+
+    private void HandleDecrypt()
+    {
+        if (string.IsNullOrWhiteSpace(Receiver.Ciphertext))
+        {
+            Receiver.Plaintext = "Decryption error: Ciphertext is empty.";
+            return;
+        }
+
+        // For OTP, if no key provided, copy the sender's OTP key.
+        if (Receiver.Technique == "OTP" && string.IsNullOrWhiteSpace(Receiver.Key))
+        {
+            Receiver.Key = Sender.Key;
+        }
+        else if (string.IsNullOrWhiteSpace(Receiver.Key))
+        {
+            Receiver.Plaintext = "Decryption error: Key is empty.";
+            return;
+        }
+
+        try
+        {
+            Receiver.Plaintext = Decrypt(Receiver.Ciphertext, Receiver.Key, Receiver.Technique);
+        }
+        catch (Exception ex)
+        {
+            Receiver.Plaintext = $"Decryption error: {ex.Message}";
+        }
+    }
+
+
+
+
+
+
+    private string Encrypt(string plaintext, string key, string technique)
+    {
+        return technique switch
+        {
+            "Caesar" => EncryptionTechniques.CaesarCipherEncrypt(plaintext, key),
+            "Monoalphabetic" => EncryptionTechniques.MonoalphabeticEncrypt(plaintext, key),
+            "Polyalphabetic" => EncryptionTechniques.PolyalphabeticEncrypt(plaintext, key),
+            "Hill" => EncryptionTechniques.HillCipher.Encrypt(plaintext, key),
+            "Playfair" => EncryptionTechniques.PlayfairEncrypt(plaintext, key),
+            "OTP" => EncryptionTechniques.OTPEncrypt(plaintext, key),
+            "RailFence" => EncryptionTechniques.RailFenceEncrypt(plaintext, key),
+            "Columnar" => EncryptionTechniques.ColumnarEncrypt(plaintext, key),
+            "DES" => Convert.ToBase64String(EncryptionTechniques.DES.Encrypt(
+                Encoding.UTF8.GetBytes(plaintext), Encoding.UTF8.GetBytes(key))),
+            "AES" => Convert.ToBase64String(EncryptionTechniques.AES.Encrypt(
+                    Encoding.UTF8.GetBytes(plaintext), Encoding.UTF8.GetBytes(key))),
+            "RC4" => Convert.ToBase64String(EncryptionTechniques.RC4.Encrypt(
+                    Encoding.UTF8.GetBytes(plaintext), Encoding.UTF8.GetBytes(key))),
+            "RSA" => EncryptionTechniques.RSA.Encrypt(plaintext, key),
+
+            "ECC" =>
+            // Check if keys are valid
+            (string.IsNullOrEmpty(Sender.PrivateKey) || string.IsNullOrEmpty(Receiver.PublicKey))
+                ? throw new ArgumentNullException("Private key or public key is null.")
+                : EncryptionTechniques.ECC.Encrypt(
+                    plaintext,
+                    EncryptionTechniques.ECC.DeriveSharedKey(Sender.PrivateKey, Receiver.PublicKey)
+                ),
+            "DH" =>
+        // Check if keys are valid
+        (string.IsNullOrEmpty(Sender.PrivateKey) || string.IsNullOrEmpty(Receiver.PublicKey))
+            ? throw new ArgumentNullException("Private key or public key is null.")
+            : EncryptionTechniques.DH.Encrypt(
+                plaintext,
+                EncryptionTechniques.DH.DeriveSharedSecret(Receiver.PublicKey, BigInteger.Parse(Sender.PrivateKey))
+            ),
+
+            "SHA" => EncryptionTechniques.SHA.ComputeHash(plaintext),
+
+            "DSA" => GenerateDsaSignature(plaintext),
+
+
+            _ => throw new NotSupportedException($"Encryption technique {technique} not supported.")
+        };
+    }
+
+    private string Decrypt(string ciphertext, string key, string technique)
+    {
+        return technique switch
+        {
+            "Caesar" => EncryptionTechniques.CaesarCipherDecrypt(ciphertext, key),
+            "Monoalphabetic" => EncryptionTechniques.MonoalphabeticDecrypt(ciphertext, key),
+            "Polyalphabetic" => EncryptionTechniques.PolyalphabeticDecrypt(ciphertext, key),
+            "Hill" => EncryptionTechniques.HillCipher.Decrypt(ciphertext, key),
+            "Playfair" => EncryptionTechniques.PlayfairDecrypt(ciphertext, key),
+            "OTP" => EncryptionTechniques.OTPDecrypt(ciphertext, key),
+            "RailFence" => EncryptionTechniques.RailFenceDecrypt(ciphertext, key),
+            "Columnar" => EncryptionTechniques.ColumnarDecrypt(ciphertext, key),
+            "DES" => Encoding.UTF8.GetString(EncryptionTechniques.DES.Decrypt(
+                Convert.FromBase64String(ciphertext), Encoding.UTF8.GetBytes(key))),
+            "AES" => Encoding.UTF8.GetString(EncryptionTechniques.AES.Decrypt(
+                    Convert.FromBase64String(ciphertext), Encoding.UTF8.GetBytes(key))),
+            "RC4" => Encoding.UTF8.GetString(EncryptionTechniques.RC4.Decrypt(
+                    Convert.FromBase64String(ciphertext), Encoding.UTF8.GetBytes(key))),
+            "RSA" => EncryptionTechniques.RSA.Decrypt(ciphertext, key),
+            "ECC" => 
+            // Check if keys are valid
+            (string.IsNullOrEmpty(Receiver.PrivateKey) || string.IsNullOrEmpty(Sender.PublicKey))
+                ? throw new ArgumentNullException("Private key or public key is null.")
+                : EncryptionTechniques.ECC.Decrypt(
+                    ciphertext,
+                    EncryptionTechniques.ECC.DeriveSharedKey(Receiver.PrivateKey, Sender.PublicKey)
+                ),
+            "DH" =>
+        (string.IsNullOrEmpty(Receiver.PrivateKey) || string.IsNullOrEmpty(Sender.PublicKey))
+            ? throw new ArgumentNullException("Private key or public key is null.")
+            : EncryptionTechniques.DH.Decrypt(
+                ciphertext,
+                EncryptionTechniques.DH.DeriveSharedSecret(Sender.PublicKey, BigInteger.Parse(Receiver.PrivateKey))
+            ),
+
+            "SHA" =>
+             // For educational purposes, rehash the saved original plaintext and compare.
+             (string.IsNullOrEmpty(Receiver.OriginalPlaintext))
+                 ? "Decryption error: Original plaintext not available."
+                 : (EncryptionTechniques.SHA.ComputeHash(Receiver.OriginalPlaintext) == ciphertext
+                     ? "Integrity check passed: The hash matches the plaintext."
+                     : "Integrity check failed: The hash does not match the plaintext."),
+
+            "DSA" =>
+    (string.IsNullOrEmpty(Receiver.Key) || string.IsNullOrEmpty(Sender.PublicKey))
+        ? throw new ArgumentNullException("Public key is null.")
+        : EncryptionTechniques.DSA.Verify(
+            Sender.Plaintext,        // Use the original message (from the sender).
+            ciphertext.Split('|')[0], // Extract 'r' from the signature.
+            ciphertext.Split('|')[1], // Extract 's' from the signature.
+            Receiver.Key             // Use the receiver's public key for verification.
+        ) ? "✅ Signature Valid" : "❌ Signature Invalid",
+
+
+            _ => throw new NotSupportedException($"Decryption technique {technique} not supported.")
+        };
+    }
+
+    
+
+    private void HandleSend()
+    {
+        if (!string.IsNullOrWhiteSpace(Sender.Ciphertext))
+        {
+            Receiver.Ciphertext = Sender.Ciphertext;
+            // Special handling for OTP: pass key and technique
+            if (Sender.Technique == "OTP")
+            {
+                Receiver.Key = Sender.Key;
+                Receiver.Technique = Sender.Technique;
+            }
+            // Special handling for SHA:
+            else if (Sender.Technique == "SHA")
+            {
+                // Pass only the hash (ciphertext) to the receiver,
+                // but also store the original plaintext separately for integrity check.
+                Receiver.OriginalPlaintext = Sender.Plaintext;
+                Receiver.Technique = Sender.Technique;
+            }
+        }
+    }
+
+
+    private string GenerateDsaSignature(string plaintext)
+    {
+        if (string.IsNullOrEmpty(Sender.PrivateKey))
+            throw new ArgumentNullException("Private key is null.");
+
+        // Compute the signature using the DSA function.
+        var signature = EncryptionTechniques.DSA.Sign(plaintext, BigInteger.Parse(Sender.PrivateKey));
+
+        // Format the signature as "r|s"
+        return signature.r + "|" + signature.s;
+    }
+
+
+
+
+    private void GenerateSenderECCKeys()
+    {
+        try
+        {
+            SecureChat.EncryptionTechniques.ECC.GenerateKeyPair(out string senderPublic, out string senderPrivate);
+            // Store keys directly (as hex strings)
+            Sender.PrivateKey = senderPrivate ?? "";
+            Sender.PublicKey = senderPublic ?? "";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("ECC Sender Key Generation failed: " + ex.Message);
+        }
+    }
+
+    private void GenerateReceiverECCKeys()
+    {
+        try
+        {
+            SecureChat.EncryptionTechniques.ECC.GenerateKeyPair(out string receiverPublic, out string receiverPrivate);
+            Receiver.PrivateKey = receiverPrivate ?? "";
+            Receiver.PublicKey = receiverPublic ?? "";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("ECC Receiver Key Generation failed: " + ex.Message);
+        }
+    }
+
+
+    // Asymmetric Key Generation that calls the correct branch.
+    private void GenerateSenderKeys()
+    {
+        if (Sender.Technique == "RSA")
+        {
+            // RSA generation: Sender keeps private and Receiver gets public.
+            string publicKey, privateKey;
+            RSA.GenerateKeyPair(64, out publicKey, out privateKey);
+            Sender.Key = privateKey ?? "";
+            Receiver.Key = publicKey ?? "";
+        }
+        else if (Sender.Technique == "ECC")
+        {
+            // Generate ECC keys for both sender and receiver.
+            GenerateSenderECCKeys();
+            GenerateReceiverECCKeys();
+
+            // Assign the UI-bound fields.
+            // For ECC encryption, we will later derive a shared key.
+            // Here, we put the sender's private and receiver's private in the UI-bound properties.
+            Sender.Key = Sender.PrivateKey ?? "";
+            Receiver.Key = Receiver.PrivateKey ?? "";
+        }
+        else if (Sender.Technique == "DH")
+        {
+            // Generate DH keys for both parties
+            BigInteger senderPrivate = EncryptionTechniques.DH.GeneratePrivateKey();
+            Sender.PrivateKey = senderPrivate.ToString();
+            Sender.PublicKey = EncryptionTechniques.DH.GeneratePublicKey(senderPrivate);
+
+            BigInteger receiverPrivate = EncryptionTechniques.DH.GeneratePrivateKey();
+            Receiver.PrivateKey = receiverPrivate.ToString();
+            Receiver.PublicKey = EncryptionTechniques.DH.GeneratePublicKey(receiverPrivate);
+
+            // Display public keys in the UI
+            Sender.Key = Sender.PublicKey;
+            Receiver.Key = Receiver.PublicKey;
+        }
+        else if (Sender.Technique == "DSA")
+        {
+            // Generate the DSA key pair.
+            BigInteger privateKey = EncryptionTechniques.DSA.GeneratePrivateKey();
+            string publicKey = EncryptionTechniques.DSA.GeneratePublicKey(privateKey);
+
+            // Save keys to the sender model.
+            Sender.PrivateKey = privateKey.ToString();
+            Sender.PublicKey = publicKey;
+
+            // Populate UI fields:
+            // Display the private key in the Sender's key textbox (for signing).
+            Sender.Key = Sender.PrivateKey;
+
+            // Display the public key in the Receiver's key textbox (for verification).
+            Receiver.Key = Sender.PublicKey;
+        }
+
+        else if (Sender.Technique == "SHA")  // Add SHA case
+        {
+            // SHA doesn't use keys
+            Sender.Key = "N/A (No Key Needed)";
+            Receiver.Key = "N/A (No Key Needed)";
+        }
+        else
+        {
+            Sender.Key = "N/A";
+            Receiver.Key = "N/A";
+        }
+    }
+}
