@@ -55,9 +55,9 @@ All cryptographic logic lives in [`EncryptionTechniques.cs`](SecureChat/Encrypti
 
 ## Tech stack
 
-- C# and .NET [ADD VERSION, e.g. 8.0]
+- C# and .NET 8.0
 - Blazor WebAssembly with Razor components
-- [Confirm: `System.Security.Cryptography` for AES/RSA/etc., and any custom implementations for the classical ciphers]
+- All cryptographic algorithms implemented from scratch in C#, without built-in cryptography libraries
 
 ## Project structure
 
@@ -78,7 +78,7 @@ SecureChat/
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download) [ADD VERSION]
+- [.NET SDK](https://dotnet.microsoft.com/download)
 - Visual Studio 2022 (optional) or any editor that supports .NET
 
 ### Run locally
@@ -102,7 +102,8 @@ Then open the URL printed in the terminal, or open the solution in Visual Studio
 
 - Built for learning, not for production use
 - Some techniques here (Caesar, RC4, DES, and others) are historically important but no longer secure
-- [Add how keys are generated and stored, e.g. "keys are generated in the browser and are not persisted"]
+- All algorithms are custom implementations written to learn how they work. They have not been tested against standard test vectors or audited, so they should not be used to protect real data
+- Keys are generated in the browser and are not stored or persisted
 
 ## Author
 
