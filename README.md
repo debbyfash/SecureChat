@@ -17,8 +17,9 @@ A Blazor WebAssembly application built in C# that demonstrates how classical and
 ## Features
 
 - Separate **Sender** and **Receiver** panels: encrypt on one side, decrypt on the other
-- 14 cryptographic techniques, selectable from a dropdown
-- Key generation for the techniques that need it
+- **Send** passes the encrypted message from the sender to the receiver automatically
+- 16 cryptographic techniques, selectable from a dropdown
+- Key generation for RSA, ECC, DSA and Diffie-Hellman
 - Text input, with an option to choose a file
 - Home page that explains each technique
 - Installable as a Progressive Web App (service worker and web manifest)
@@ -35,6 +36,8 @@ All cryptographic logic lives in [`EncryptionTechniques.cs`](SecureChat/Encrypti
 | Symmetric-key algorithms | DES, AES, RC4 |
 | Public-key cryptography | RSA, ECC (Elliptic Curve Cryptography) |
 | Key exchange | Diffie-Hellman (DH) |
+| Digital signatures | DSA |
+| Hashing | SHA |
 
 | Technique | What it does |
 |-----------|--------------|
@@ -52,6 +55,8 @@ All cryptographic logic lives in [`EncryptionTechniques.cs`](SecureChat/Encrypti
 | RSA | Public-key encryption based on factoring large integers |
 | ECC | Public-key cryptography based on elliptic curves |
 | Diffie-Hellman | Lets two parties agree on a shared key over a public channel |
+| DSA | Creates and verifies digital signatures using a key pair |
+| SHA | One-way hash function that produces a fixed-length fingerprint of a message (no key needed) |
 
 ## Tech stack
 
@@ -78,7 +83,7 @@ SecureChat/
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download)
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download)
 - Visual Studio 2022 (optional) or any editor that supports .NET
 
 ### Run locally
@@ -94,9 +99,10 @@ Then open the URL printed in the terminal, or open the solution in Visual Studio
 ## How to use
 
 1. Open **Secure Chat** from the sidebar.
-2. In the **Sender** panel, type a message, enter or generate a key, and pick a technique.
+2. In the **Sender** panel, type a message and pick a technique. Enter a key, or click **Generate Keys** for the techniques that use generated keys (RSA, ECC, DSA and Diffie-Hellman). SHA is a hash function and needs no key.
 3. Click **Encrypt** to produce the ciphertext.
-4. In the **Receiver** panel, paste the ciphertext, enter the key, pick the same technique, and click **Decrypt**.
+4. Click **Send**. The encrypted message appears automatically in the **Receiver** panel's ciphertext field.
+5. In the **Receiver** panel, enter the key, pick the same technique, and click **Decrypt** to recover the original message.
 
 ## Limitations
 
